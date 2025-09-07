@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +70,10 @@ public class AuthServiceImpl implements IAuthService {
         if (user.getStatus() == StatusType.INACTIVE || user.getStatus() == StatusType.SUSPENDED) {
             throw new RuntimeException("Account is inactive or suspended. Please contact support.");
         }
+
+        // Update last login timestamp
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
 
         log.info("Connexion réussie pour l'utilisateur : {}", user.getEmail());
         return jwtProvider.generateToken(user.getEmail(), user.getRole().toString(), user.getId(), user.getDepartment() != null ? user.getDepartment().name() : null);
@@ -172,6 +177,7 @@ public class AuthServiceImpl implements IAuthService {
         dto.setDepartment(user.getDepartment());
         dto.setStatus(user.getStatus());
         dto.setAvatar(user.getAvatar());
+        dto.setLastLogin(user.getLastLogin());
         return dto;
     }
 

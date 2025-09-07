@@ -105,6 +105,7 @@ public class UserServiceImpl implements IUserService {
         dto.setDepartment(user.getDepartment());
         dto.setStatus(user.getStatus());
         dto.setAvatar(user.getAvatar());
+        dto.setLastLogin(user.getLastLogin());
         return dto;
     }
 
@@ -118,6 +119,7 @@ public class UserServiceImpl implements IUserService {
         user.setDepartment(dto.getDepartment());
         user.setStatus(dto.getStatus() != null ? dto.getStatus() : StatusType.ACTIVE);
         user.setAvatar(dto.getAvatar());
+        user.setLastLogin(dto.getLastLogin());
         return user;
     }
 }

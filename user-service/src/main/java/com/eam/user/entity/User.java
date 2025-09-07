@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -45,4 +46,7 @@ public class User {
 
     @Column(name = "avatar")
     private String avatar;
+
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
 }

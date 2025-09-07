@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode'
-import api from '../api/client'
+import Layout from '../components/Layout'
 
 type DecodedToken = {
 	sub?: string
@@ -10,7 +10,6 @@ type DecodedToken = {
 }
 
 function Welcome() {
-	const navigate = useNavigate()
 	const token = localStorage.getItem('token')
 
 	const { name, role } = useMemo(() => {
@@ -28,24 +27,17 @@ function Welcome() {
 		return <Navigate to="/signin" replace />
 	}
 
-	async function handleLogout() {
-		try {
-			await api.post('/auth/logout')
-		} catch {
-			// ignore failure; proceed to clear token client-side
-		}
-		localStorage.removeItem('token')
-		navigate('/signin', { replace: true })
-	}
-
 	return (
-		<div style={{ display: 'grid', placeItems: 'center', height: '100vh', fontFamily: 'sans-serif', gap: 16 }}>
-			<h1>
-				Hello {name} your role is {role}
-			</h1>
-			<button onClick={handleLogout} style={{ padding: '8px 16px' }}>Logout</button>
-		</div>
+		<Layout>
+			<div style={{ display: 'grid', placeItems: 'center', height: '100%', fontFamily: 'sans-serif', gap: 16 }}>
+				<h1>
+					Hello {name} your role is {role}
+				</h1>
+			</div>
+		</Layout>
 	)
 }
 
 export default Welcome
+
+

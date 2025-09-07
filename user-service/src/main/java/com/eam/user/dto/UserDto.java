@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -34,6 +35,8 @@ public class UserDto {
     private StatusType status;
 
     private String avatar;
+
+    private LocalDateTime lastLogin;
 
 }
 

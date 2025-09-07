@@ -1,0 +1,14 @@
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\DocumentServiceApplication.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\service\FileValidationService.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\service\ArchiveService.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\repository\ArchiveRepository.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\service\VirusScanService.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\service\RapportService.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\enums\TypeArchive.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\controller\RapportController.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\web\ArchiveStats.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\entity\Rapport.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\controller\ArchiveController.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\entity\Archive.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\service\IDocumentService.java
+C:\Users\Admin\Desktop\eam\EamBackend\document-service\src\main\java\com\eam\document\repository\RapportRepository.java
