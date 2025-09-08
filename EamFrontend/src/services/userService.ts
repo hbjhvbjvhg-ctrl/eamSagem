@@ -1,5 +1,5 @@
 import api from '../api/client';
-import { User } from '../types/User';
+import { User, Role, DepartmentType, StatusType } from '../types/User';
 
 export interface UserResponse {
   id: number;
@@ -14,6 +14,15 @@ export interface UserResponse {
 }
 
 export const userService = {
+  // Helpers for enums (frontend-driven)
+  getRoles(): Role[] {
+    return Object.values(Role);
+  },
+
+  getDepartments(): DepartmentType[] {
+    return Object.values(DepartmentType);
+  },
+
   // Récupérer tous les utilisateurs (selon les permissions)
   async getAllUsers(): Promise<User[]> {
     try {
@@ -37,9 +46,10 @@ export const userService = {
   },
 
   // Ajouter un nouvel utilisateur
-  async addUser(userData: Partial<User>): Promise<User> {
+  async addUser(userData: Partial<User> & { password: string }): Promise<User> {
     try {
-      const response = await api.post<UserResponse>('/user/add-user', userData);
+      const payload = this.mapToUserDto(userData);
+      const response = await api.post<UserResponse>('/user/add-user', payload);
       return this.mapUserResponse(response.data);
     } catch (error) {
       console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
@@ -48,9 +58,10 @@ export const userService = {
   },
 
   // Mettre à jour un utilisateur
-  async updateUser(userData: User): Promise<User> {
+  async updateUser(userData: Partial<User> & { id: number; password?: string }): Promise<User> {
     try {
-      const response = await api.put<UserResponse>('/user/update-user', userData);
+      const payload = this.mapToUserDto(userData);
+      const response = await api.put<UserResponse>('/user/update-user', payload);
       return this.mapUserResponse(response.data);
     } catch (error) {
       console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
@@ -133,6 +144,24 @@ export const userService = {
       lastName,
       lastLogin: lastLoginFormatted
     };
+  },
+
+  // Mapper le modèle frontend vers le DTO backend attendu
+  mapToUserDto(data: Partial<User> & { id?: number; password?: string }): any {
+    const dto: any = {
+      id: data.id,
+      email: data.email,
+      password: data as any && (data as any).password ? (data as any).password : undefined,
+      role: data.role as Role | undefined,
+      phone: data.phone,
+      CIN: data.cin, // backend expects "CIN"
+      department: data.department as DepartmentType | undefined,
+      status: (data.status as StatusType | undefined) ?? StatusType.ACTIVE,
+      avatar: data.avatar
+    };
+    // Remove undefined to avoid overwriting with nulls
+    Object.keys(dto).forEach((key) => dto[key] === undefined && delete dto[key]);
+    return dto;
   }
 };
 

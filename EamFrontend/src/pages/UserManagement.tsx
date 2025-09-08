@@ -12,6 +12,25 @@ const UserManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+
+  // Modal & form state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [formValues, setFormValues] = useState<{ 
+    email: string; password?: string; phone?: string; cin?: string; role: Role; department?: DepartmentType; status: StatusType; 
+  }>({
+    email: '',
+    password: '',
+    phone: '',
+    cin: '',
+    role: Role.TECHNICIEN,
+    department: undefined,
+    status: StatusType.ACTIVE,
+  });
   
   // Hook pour les permissions utilisateur
   const permissions = useUserPermissions();
@@ -187,8 +206,9 @@ const UserManagement: React.FC = () => {
     
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+    const matchesDepartment = departmentFilter === 'all' || (user.department || '') === departmentFilter;
     
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesRole && matchesStatus && matchesDepartment;
   });
 
   if (loading) {
@@ -224,11 +244,18 @@ const UserManagement: React.FC = () => {
           <div className="header-title">
             <h1>👥 Liste des utilisateurs</h1>
           </div>
-          {permissions.canExportUsers && (
-            <button className="export-button">
-              📥 Exporter
-            </button>
-          )}
+          <div className="header-actions">
+            {permissions.canExportUsers && (
+              <button className="export-button">
+                📥 Exporter
+              </button>
+            )}
+            {permissions.canAddUsers && (
+              <button className="primary-button" onClick={() => { setIsEditMode(false); setEditingUserId(null); setFormError(null); setFormValues({ email: '', password: '', phone: '', cin: '', role: Role.TECHNICIEN, department: undefined, status: StatusType.ACTIVE }); setIsModalOpen(true); }}>
+                ➕ Ajouter
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="user-management-filters">
@@ -237,7 +264,7 @@ const UserManagement: React.FC = () => {
               type="text"
               placeholder="🔍 Rechercher par nom, email ou département..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               className="search-input"
             />
           </div>
@@ -245,7 +272,7 @@ const UserManagement: React.FC = () => {
           <div className="filter-container">
             <select
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRoleFilter(e.target.value)}
               className="filter-select"
             >
               <option value="all">Tous les rôles</option>
@@ -259,7 +286,7 @@ const UserManagement: React.FC = () => {
           <div className="filter-container">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
               className="filter-select"
             >
               <option value="all">Tous les statuts</option>
@@ -268,6 +295,19 @@ const UserManagement: React.FC = () => {
               <option value={StatusType.SUSPENDED}>Suspendu</option>
               <option value={StatusType.PENDING}>En attente</option>
               <option value={StatusType.ARCHIVED}>Archivé</option>
+            </select>
+          </div>
+
+          <div className="filter-container">
+            <select
+              value={departmentFilter}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDepartmentFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">Tous les départements</option>
+              {userService.getDepartments().map((dep) => (
+                <option key={dep} value={dep}>{dep}</option>
+              ))}
             </select>
           </div>
 
@@ -339,7 +379,40 @@ const UserManagement: React.FC = () => {
                     {user.lastLogin}
                   </td>
                   <td className="actions-cell">
-                    <button className="action-button">⋯</button>
+                    {permissions.canEditUsers && (
+                      <button 
+                        className="action-button"
+                        onClick={() => {
+                          setIsEditMode(true);
+                          setEditingUserId(user.id);
+                          setFormError(null);
+                          setFormValues({
+                            email: user.email,
+                            password: '',
+                            phone: user.phone,
+                            cin: user.cin,
+                            role: user.role,
+                            department: user.department,
+                            status: user.status,
+                          });
+                          setIsModalOpen(true);
+                        }}
+                      >✏️</button>
+                    )}
+                    {permissions.canDeleteUsers && (
+                      <button 
+                        className="action-button"
+                        onClick={async () => {
+                          if (!window.confirm('Supprimer cet utilisateur ?')) return;
+                          try {
+                            await userService.deleteUser(user.id);
+                            await loadUsers();
+                          } catch (err: any) {
+                            alert(err?.response?.data?.message || 'Erreur lors de la suppression');
+                          }
+                        }}
+                      >🗑️</button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -350,6 +423,139 @@ const UserManagement: React.FC = () => {
         {filteredUsers.length === 0 && (
           <div className="no-users">
             <p>Aucun utilisateur trouvé avec les critères de recherche actuels.</p>
+          </div>
+        )}
+
+        {isModalOpen && (
+          <div className="modal-overlay" onClick={() => !formSubmitting && setIsModalOpen(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>{isEditMode ? 'Modifier un utilisateur' : 'Ajouter un utilisateur'}</h3>
+              </div>
+              <div className="modal-body">
+                {formError && <div className="form-error">{formError}</div>}
+                <div className="form-grid">
+                  <label>
+                    Email
+                    <input 
+                      className="input"
+                      type="email" 
+                      value={formValues.email}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormValues({ ...formValues, email: e.target.value })}
+                    />
+                  </label>
+                  {!isEditMode && (
+                    <label>
+                      Mot de passe
+                      <input 
+                        className="input"
+                        type="password" 
+                        value={formValues.password || ''}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormValues({ ...formValues, password: e.target.value })}
+                      />
+                    </label>
+                  )}
+                  <label>
+                    Téléphone
+                    <input 
+                      className="input"
+                      type="text" 
+                      value={formValues.phone || ''}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormValues({ ...formValues, phone: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    CIN
+                    <input 
+                      className="input"
+                      type="text" 
+                      value={formValues.cin || ''}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormValues({ ...formValues, cin: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Rôle
+                    <select 
+                      className="input"
+                      value={formValues.role}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormValues({ ...formValues, role: e.target.value as Role })}
+                    >
+                      {userService.getRoles().map((r) => (
+                        <option key={r} value={r}>{getRoleDisplayName(r)}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Département
+                    <select 
+                      className="input"
+                      value={formValues.department || ''}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormValues({ ...formValues, department: (e.target.value || undefined) as DepartmentType | undefined })}
+                    >
+                      <option value="">Aucun</option>
+                      {userService.getDepartments().map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Statut
+                    <select 
+                      className="input"
+                      value={formValues.status}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormValues({ ...formValues, status: e.target.value as StatusType })}
+                    >
+                      <option value={StatusType.ACTIVE}>Actif</option>
+                      <option value={StatusType.INACTIVE}>Inactif</option>
+                      <option value={StatusType.SUSPENDED}>Suspendu</option>
+                      <option value={StatusType.PENDING}>En attente</option>
+                      <option value={StatusType.ARCHIVED}>Archivé</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="secondary-button" disabled={formSubmitting} onClick={() => setIsModalOpen(false)}>Annuler</button>
+                <button 
+                  className="primary-button" 
+                  disabled={formSubmitting || !formValues.email || (!isEditMode && !formValues.password)}
+                  onClick={async () => {
+                    setFormError(null);
+                    setFormSubmitting(true);
+                    try {
+                      if (isEditMode && editingUserId != null) {
+                        await userService.updateUser({
+                          id: editingUserId,
+                          email: formValues.email,
+                          password: formValues.password || undefined,
+                          phone: formValues.phone,
+                          cin: formValues.cin,
+                          role: formValues.role,
+                          department: formValues.department,
+                          status: formValues.status,
+                        });
+                      } else {
+                        await userService.addUser({
+                          email: formValues.email,
+                          password: formValues.password || '',
+                          phone: formValues.phone,
+                          cin: formValues.cin,
+                          role: formValues.role,
+                          department: formValues.department,
+                          status: formValues.status,
+                        });
+                      }
+                      await loadUsers();
+                      setIsModalOpen(false);
+                    } catch (err: any) {
+                      setFormError(err?.response?.data?.message || 'Erreur lors de l\'enregistrement');
+                    } finally {
+                      setFormSubmitting(false);
+                    }
+                  }}
+                >{formSubmitting ? 'Enregistrement...' : isEditMode ? 'Enregistrer' : 'Créer'}</button>
+              </div>
+            </div>
           </div>
         )}
       </div>
