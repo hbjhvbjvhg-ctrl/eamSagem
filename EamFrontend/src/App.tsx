@@ -1,3 +1,4 @@
+import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
@@ -7,6 +8,10 @@ import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import BackendResetRedirect from './pages/BackendResetRedirect'
 import ModulePage from './pages/ModulePage'
+import MachineManagement from './pages/MachineManagement'
+import WorkOrderManagement from './pages/WorkOrderManagement'
+import InterventionManagement from './pages/InterventionManagement'
+import PlanningManagement from './pages/PlanningManagement'
 import AdminDashboard from './pages/AdminDashboard'
 import OperationsDashboard from './pages/OperationsDashboard'
 import TechnicalDashboard from './pages/TechnicalDashboard'
@@ -62,12 +67,12 @@ function App() {
 			<Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
 			
 			{/* Routes des modules */}
-			<Route path="/intervention-service" element={<ProtectedRoute><ModulePage /></ProtectedRoute>} />
-			<Route path="/work-order-service" element={<ProtectedRoute><ModulePage /></ProtectedRoute>} />
+			<Route path="/intervention-service" element={<ProtectedRoute><InterventionManagement /></ProtectedRoute>} />
+			<Route path="/work-order-service" element={<ProtectedRoute><WorkOrderManagement /></ProtectedRoute>} />
 			<Route path="/user-service" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
 			<Route path="/document-service" element={<ProtectedRoute><ModulePage /></ProtectedRoute>} />
-			<Route path="/planning-service" element={<ProtectedRoute><ModulePage /></ProtectedRoute>} />
-			<Route path="/asset-service" element={<ProtectedRoute><ModulePage /></ProtectedRoute>} />
+			<Route path="/planning-service" element={<ProtectedRoute><PlanningManagement /></ProtectedRoute>} />
+			<Route path="/asset-service" element={<ProtectedRoute><MachineManagement /></ProtectedRoute>} />
 			
 			{/* Route par défaut */}
 			<Route path="*" element={<Navigate to={getDefaultRedirect()} replace />} />
