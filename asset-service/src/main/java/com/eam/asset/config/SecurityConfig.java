@@ -18,9 +18,9 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final com.eam.user.security.JwtProvider jwtProvider = new com.eam.user.security.JwtProvider();
-    private final com.eam.user.security.TokenBlacklist tokenBlacklist = new com.eam.user.security.TokenBlacklist();
-    private final com.eam.user.security.JwtFilter jwtFilter = new com.eam.user.security.JwtFilter(jwtProvider, tokenBlacklist);
+    private final com.eam.common.security.JwtProvider jwtProvider = new com.eam.common.security.JwtProvider();
+    private final com.eam.common.security.TokenBlacklist tokenBlacklist = new com.eam.common.security.TokenBlacklist();
+    private final com.eam.common.security.JwtFilter jwtFilter = new com.eam.common.security.JwtFilter(jwtProvider, tokenBlacklist);
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
